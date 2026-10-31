@@ -35,7 +35,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           Island Sustainability Achieved!
         </h2>
         <p className="text-sm text-emerald-300 font-semibold mt-1">
-          Kaz Island is now a carbon-negative eco paradise.
+          The island is now a carbon-negative eco paradise.
         </p>
 
         {/* Impact Tiles */}
@@ -59,7 +59,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
         </div>
 
         <p className="text-xs text-slate-300 max-w-sm mb-6 leading-relaxed">
-          Through conscious consumption, permaculture farming, clean wind energy, and marine protection, Kaz the Duck and the community established true climate resilience!
+          Through conscious consumption, permaculture farming, clean wind energy, and marine protection, Sustainable Geese established true climate resilience!
         </p>
 
         {/* Buttons */}

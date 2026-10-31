@@ -1,0 +1,147 @@
+[gd_scene load_steps=9 format=3 uid="uid://c7k2a8b41m5x9"]
+
+[ext_resource type="Script" path="res://scripts/CityManager.gd" id="1_city_mgr"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2_player_scn"]
+[ext_resource type="PackedScene" path="res://scenes/UI/TaskUI.tscn" id="3_task_ui"]
+[ext_resource type="PackedScene" path="res://scenes/UI/ScoreUI.tscn" id="4_score_ui"]
+[ext_resource type="Texture2D" path="res://textures/objects/wind_turbine.png" id="5_turbine_tex"]
+[ext_resource type="Texture2D" path="res://textures/objects/plastic.png" id="6_plastic_tex"]
+[ext_resource type="PackedScene" path="res://scenes/CityRoads.tscn" id="7_roads_scn"]
+[ext_resource type="PackedScene" path="res://scenes/NPCGoose.tscn" id="8_npc_goose_scn"]
+
+[node name="World" type="Node2D" node_paths=PackedStringArray("wind_turbines_group", "ocean_debris_container")]
+y_sort_enabled = true
+script = ExtResource("1_city_mgr")
+wind_turbines_group = NodePath("WindTurbinesGroup")
+ocean_debris_container = NodePath("OceanDebrisContainer")
+
+[node name="IslandBackground" type="Node2D" parent="."]
+z_index = -10
+
+[node name="OceanWater" type="ColorRect" parent="IslandBackground"]
+offset_left = -8000.0
+offset_top = -6000.0
+offset_right = 8000.0
+offset_bottom = 6000.0
+color = Color(0.133333, 0.603922, 0.666667, 1)
+
+[node name="BeachShoreline" type="Polygon2D" parent="IslandBackground"]
+color = Color(0.945098, 0.768627, 0.32549, 1)
+polygon = PackedVector2Array(-3000, -1900, -2250, -2400, 0, -2700, 2400, -2300, 3100, -1600, 3300, 0, 3000, 1800, 2200, 2400, 0, 2600, -2300, 2300, -3100, 1500, -3300, 0)
+
+[node name="MainGrassIsland" type="Polygon2D" parent="IslandBackground"]
+color = Color(0.282353, 0.658824, 0.219608, 1)
+polygon = PackedVector2Array(-2700, -1650, -2000, -2100, 0, -2350, 2100, -2000, 2700, -1350, 2900, 0, 2650, 1550, 1900, 2100, 0, 2250, -2000, 2000, -2700, 1300, -2850, 0)
+
+[node name="CityRoads" parent="." instance=ExtResource("7_roads_scn")]
+
+[node name="WindTurbinesGroup" type="Node2D" parent="."]
+y_sort_enabled = true
+position = Vector2(1500, 0)
+
+[node name="Turbine1" type="Node2D" parent="WindTurbinesGroup"]
+position = Vector2(0, -60)
+
+[node name="TowerSprite" type="Sprite2D" parent="WindTurbinesGroup/Turbine1"]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("5_turbine_tex")
+offset = Vector2(0, -32)
+
+[node name="Blades" type="Node2D" parent="WindTurbinesGroup/Turbine1"]
+position = Vector2(0, -84)
+
+[node name="Turbine2" type="Node2D" parent="WindTurbinesGroup"]
+position = Vector2(180, 80)
+
+[node name="TowerSprite" type="Sprite2D" parent="WindTurbinesGroup/Turbine2"]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("5_turbine_tex")
+offset = Vector2(0, -32)
+
+[node name="Blades" type="Node2D" parent="WindTurbinesGroup/Turbine2"]
+position = Vector2(0, -84)
+
+[node name="OceanDebrisContainer" type="Node2D" parent="."]
+position = Vector2(-1750, -1500)
+
+[node name="Debris1" type="Sprite2D" parent="OceanDebrisContainer"]
+position = Vector2(0, 0)
+scale = Vector2(1.4, 1.4)
+texture = ExtResource("6_plastic_tex")
+
+[node name="Debris2" type="Sprite2D" parent="OceanDebrisContainer"]
+position = Vector2(90, -70)
+scale = Vector2(1.4, 1.4)
+texture = ExtResource("6_plastic_tex")
+
+[node name="Debris3" type="Sprite2D" parent="OceanDebrisContainer"]
+position = Vector2(-110, 80)
+scale = Vector2(1.4, 1.4)
+texture = ExtResource("6_plastic_tex")
+
+[node name="Debris4" type="Sprite2D" parent="OceanDebrisContainer"]
+position = Vector2(160, 40)
+scale = Vector2(1.4, 1.4)
+texture = ExtResource("6_plastic_tex")
+
+[node name="Debris5" type="Sprite2D" parent="OceanDebrisContainer"]
+position = Vector2(-70, -120)
+scale = Vector2(1.4, 1.4)
+texture = ExtResource("6_plastic_tex")
+
+[node name="InteractableStations" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="ZeroWasteStation" type="Area2D" parent="InteractableStations" groups=["interactables"]]
+position = Vector2(-1500, 1000)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="InteractableStations/ZeroWasteStation"]
+polygon = PackedVector2Array(-80, -60, 80, -60, 80, 60, -80, 60)
+
+[node name="EducationStation" type="Area2D" parent="InteractableStations" groups=["interactables"]]
+position = Vector2(1250, 1500)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="InteractableStations/EducationStation"]
+polygon = PackedVector2Array(-80, -60, 80, -60, 80, 60, -80, 60)
+
+[node name="FarmStation" type="Area2D" parent="InteractableStations" groups=["interactables"]]
+position = Vector2(1750, -1000)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="InteractableStations/FarmStation"]
+polygon = PackedVector2Array(-90, -70, 90, -70, 90, 70, -90, 70)
+
+[node name="MarineStation" type="Area2D" parent="InteractableStations" groups=["interactables"]]
+position = Vector2(-1750, -1500)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="InteractableStations/MarineStation"]
+polygon = PackedVector2Array(-80, -60, 80, -60, 80, 60, -80, 60)
+
+[node name="ResilientCityStation" type="Area2D" parent="InteractableStations" groups=["interactables"]]
+position = Vector2(0, 2000)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="InteractableStations/ResilientCityStation"]
+polygon = PackedVector2Array(-90, -70, 90, -70, 90, 70, -90, 70)
+
+[node name="ConsciousBazaarStation" type="Area2D" parent="InteractableStations" groups=["interactables"]]
+position = Vector2(-1000, -500)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="InteractableStations/ConsciousBazaarStation"]
+polygon = PackedVector2Array(-80, -60, 80, -60, 80, 60, -80, 60)
+
+[node name="RenewableEnergyStation" type="Area2D" parent="InteractableStations" groups=["interactables"]]
+position = Vector2(1500, 0)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="InteractableStations/RenewableEnergyStation"]
+polygon = PackedVector2Array(-90, -70, 90, -70, 90, 70, -90, 70)
+
+[node name="NPCGoose" parent="." instance=ExtResource("8_npc_goose_scn")]
+position = Vector2(0, -180)
+
+[node name="Player" parent="." instance=ExtResource("2_player_scn")]
+position = Vector2(0, 0)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="ScoreUI" parent="HUD" instance=ExtResource("4_score_ui")]
+
+[node name="TaskUI" parent="HUD" instance=ExtResource("3_task_ui")]

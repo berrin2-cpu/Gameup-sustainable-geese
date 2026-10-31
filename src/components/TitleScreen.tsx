@@ -24,7 +24,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
       <div className="w-full max-w-5xl flex items-center justify-between">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-900/60 border border-emerald-500/40 text-emerald-200 text-xs font-semibold tracking-wide shadow-md">
           <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span>Kaz Island Simulation · UN Sustainable Development Goals</span>
+          <span>Sustainable Geese · UN Sustainable Development Goals</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
         {/* Game Title */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-          Climate<span className="text-amber-400">Kaz</span>
+          Sustainable <span className="text-amber-400">Geese</span>
         </h1>
         <p className="mt-2 text-sm sm:text-base font-semibold text-emerald-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] max-w-md">
           Cozy 2.5D Orthographic Climate & SDG Farm Sim

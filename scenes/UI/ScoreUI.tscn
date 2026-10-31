@@ -1,0 +1,85 @@
+[gd_scene load_steps=1 format=3 uid="uid://f5y9n3b2c8r6w"]
+
+[node name="ScoreUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopLeftCluster" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 320.0
+offset_bottom = 96.0
+
+[node name="Margin" type="MarginContainer" parent="TopLeftCluster"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="HBox" type="HBoxContainer" parent="TopLeftCluster/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LevelBadge" type="ColorRect" parent="TopLeftCluster/Margin/HBox"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.960784, 0.658824, 0.137255, 1)
+
+[node name="LevelLabel" type="Label" parent="TopLeftCluster/Margin/HBox/LevelBadge"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "L1"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.08, 0.08, 0.08, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="StatsVBox" type="VBoxContainer" parent="TopLeftCluster/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EcoScoreLabel" type="Label" parent="TopLeftCluster/Margin/HBox/StatsVBox"]
+layout_mode = 2
+text = "Island Eco Score: 0"
+theme_override_font_sizes/font_size = 14
+
+[node name="EnergyLabel" type="Label" parent="TopLeftCluster/Margin/HBox/StatsVBox"]
+layout_mode = 2
+text = "Clean Energy: 40 kWh"
+theme_override_colors/font_color = Color(0.96, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="SDGPillsCluster" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 108.0
+offset_right = 440.0
+offset_bottom = 138.0
+theme_override_constants/separation = 8
+
+[node name="OceanPill" type="Label" parent="SDGPillsCluster"]
+layout_mode = 2
+text = "🌊 Ocean: 35%"
+theme_override_font_sizes/font_size = 11
+
+[node name="ResiliencePill" type="Label" parent="SDGPillsCluster"]
+layout_mode = 2
+text = "🏙️ Resilience: 40%"
+theme_override_font_sizes/font_size = 11
+
+[node name="OffsetPill" type="Label" parent="SDGPillsCluster"]
+layout_mode = 2
+text = "🌲 CO₂ Offset: 0kg"
+theme_override_font_sizes/font_size = 11

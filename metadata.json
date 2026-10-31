@@ -1,6 +1,8 @@
 {
-  "name": "ClimateKaz",
+  "name": "Sustainable Geese",
   "description": "Cozy 2.5D orthographic climate & SDG farm simulator with task completion mechanics, resource management, and complete Godot GDScript project architecture.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

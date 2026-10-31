@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3 uid="uid://c6y8m1n43p7q2"]
+
+[ext_resource type="Script" path="res://scripts/NPCGoose.gd" id="1_npc_script"]
+[ext_resource type="Texture2D" path="res://textures/player/duck_idle.png" id="2_duck_tex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_7xk2q"]
+radius = 48.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_m5o2p"]
+font_size = 14
+outline_size = 3
+outline_color = Color(0, 0, 0, 0.8)
+
+[node name="NPCGoose" type="Area2D" groups=["interactables", "npcs"]]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_npc_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_7xk2q")
+
+[node name="GooseSprite" type="Sprite2D" parent="."]
+modulate = Color(0.92, 0.95, 1.0, 1.0)
+texture = ExtResource("2_duck_tex")
+offset = Vector2(0, -8)
+
+[node name="SpectaclesBowIndicator" type="Polygon2D" parent="."]
+color = Color(0.18, 0.42, 0.84, 1)
+polygon = PackedVector2Array(-8, 4, 8, 4, 6, 8, -6, 8)
+
+[node name="TalkPrompt" type="Node2D" parent="."]
+visible = false
+position = Vector2(0, -42)
+
+[node name="BubbleBackground" type="Polygon2D" parent="TalkPrompt"]
+color = Color(0.98, 0.96, 0.9, 0.95)
+polygon = PackedVector2Array(-45, -14, 45, -14, 45, 10, 6, 10, 0, 18, -6, 10, -45, 10)
+
+[node name="PromptLabel" type="Label" parent="TalkPrompt"]
+offset_left = -40.0
+offset_top = -12.0
+offset_right = 40.0
+offset_bottom = 10.0
+text = "[E] Talk"
+horizontal_alignment = 1
+vertical_alignment = 1
+label_settings = SubResource("LabelSettings_m5o2p")

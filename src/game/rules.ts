@@ -1,5 +1,5 @@
 /**
- * Pure game rules, resource calculations, and state machines for ClimateKaz.
+ * Pure game rules, resource calculations, and state machines for Sustainable Geese (ClimateKaz).
  * Decoupled from React and Three.js rendering for deterministic unit testing.
  */
 
@@ -43,6 +43,9 @@ export interface PlayerResources {
   completedTaskIds: string[];
   activeTaskCount: number;
   level: number;
+  efficiencyBonus: number; // 1.0 base, 1.25 with Elder Goose consultation
+  hasConsultedElder: boolean;
+  consultedTopics: string[];
 }
 
 export const INITIAL_RESOURCES: PlayerResources = {
@@ -56,8 +59,16 @@ export const INITIAL_RESOURCES: PlayerResources = {
   completedTaskIds: [],
   activeTaskCount: 0,
   level: 1,
+  efficiencyBonus: 1.0,
+  hasConsultedElder: false,
+  consultedTopics: [],
 };
 
+/**
+ * 5x Enlarged Map Locations:
+ * Island radius expanded from ~15 to ~70.
+ * Tasks are stationed across dedicated city road districts and ecological reserves.
+ */
 export const TASKS_CATALOG: TaskDefinition[] = [
   {
     id: 'task_zw_plastic_sorting',
@@ -72,7 +83,7 @@ export const TASKS_CATALOG: TaskDefinition[] = [
     rewardEcoScore: 60,
     rewardMetric: { type: 'wasteRecycledKg', amount: 25 },
     durationSeconds: 2.5,
-    location: { x: -6, z: 4 },
+    location: { x: -30, z: 20 },
     zoneName: 'Compost & Upcycling Hub',
   },
   {
@@ -88,7 +99,7 @@ export const TASKS_CATALOG: TaskDefinition[] = [
     rewardEcoScore: 80,
     rewardMetric: { type: 'carbonOffsetKg', amount: 40 },
     durationSeconds: 3.0,
-    location: { x: 5, z: 6 },
+    location: { x: 25, z: 30 },
     zoneName: 'Eco-Academy Gazebo',
   },
   {
@@ -104,7 +115,7 @@ export const TASKS_CATALOG: TaskDefinition[] = [
     rewardEcoScore: 70,
     rewardMetric: { type: 'foodSecurityBaskets', amount: 15 },
     durationSeconds: 2.8,
-    location: { x: 7, z: -4 },
+    location: { x: 35, z: -20 },
     zoneName: 'Sun-Dappled Farmstead',
   },
   {
@@ -120,9 +131,9 @@ export const TASKS_CATALOG: TaskDefinition[] = [
     rewardEcoScore: 90,
     rewardMetric: { type: 'marineHealthPct', amount: 18 },
     durationSeconds: 3.2,
-    location: { x: -7, z: -6 },
+    location: { x: -35, z: -30 },
     zoneName: 'Kaz Lagoon & Marine Sanctuary',
-  } as any,
+  },
   {
     id: 'task_city_green_rooftop',
     topic: 'resilient_cities',
@@ -136,7 +147,7 @@ export const TASKS_CATALOG: TaskDefinition[] = [
     rewardEcoScore: 100,
     rewardMetric: { type: 'cityResiliencePct', amount: 20 },
     durationSeconds: 3.5,
-    location: { x: 0, z: 8 },
+    location: { x: -28, z: 38 },
     zoneName: 'Civic Eco-District',
   },
   {
@@ -152,7 +163,7 @@ export const TASKS_CATALOG: TaskDefinition[] = [
     rewardEcoScore: 75,
     rewardMetric: { type: 'carbonOffsetKg', amount: 50 },
     durationSeconds: 2.6,
-    location: { x: -4, z: -2 },
+    location: { x: -20, z: -10 },
     zoneName: 'Conscious Bazaar',
   },
   {
@@ -168,11 +179,313 @@ export const TASKS_CATALOG: TaskDefinition[] = [
     rewardEcoScore: 85,
     rewardMetric: { type: 'cleanEnergyKwh', amount: 45 },
     durationSeconds: 3.0,
-    location: { x: 6, z: 0 },
+    location: { x: 34, z: -36 },
     zoneName: 'Breeze Wind & Solar Park',
   },
 ];
 
+/**
+ * NPC Goose Location: Stationed at Central Plaza Garden Corner (Off the road)
+ */
+export const NPC_GOOSE_POSITION = { x: 7, z: -7 };
+
+/**
+ * Soil Plot Model: Permaculture Garden Beds where Kaz the Duck can plant organic crops
+ */
+export interface SoilPlot {
+  id: string;
+  name: string;
+  cropName: string;
+  cropIcon: string;
+  position: { x: number; z: number };
+  state: 'empty' | 'growing' | 'mature';
+  growthProgress: number; // 0 to 100%
+  growthRate: number; // % per second
+  rewardEco: number;
+  rewardFood: number;
+  rewardCarbon: number;
+}
+
+export const INITIAL_SOIL_PLOTS: SoilPlot[] = [
+  {
+    id: 'plot_1',
+    name: 'Garden Bed #1',
+    cropName: 'Heirloom Carrots',
+    cropIcon: '🥕',
+    position: { x: 27, z: -14 },
+    state: 'empty',
+    growthProgress: 0,
+    growthRate: 14,
+    rewardEco: 25,
+    rewardFood: 6,
+    rewardCarbon: 10,
+  },
+  {
+    id: 'plot_2',
+    name: 'Garden Bed #2',
+    cropName: 'Organic Sweetcorn',
+    cropIcon: '🌽',
+    position: { x: 30, z: -14 },
+    state: 'growing',
+    growthProgress: 55,
+    growthRate: 10,
+    rewardEco: 30,
+    rewardFood: 8,
+    rewardCarbon: 12,
+  },
+  {
+    id: 'plot_3',
+    name: 'Garden Bed #3',
+    cropName: 'Pollinator Sunflowers',
+    cropIcon: '🌻',
+    position: { x: 33, z: -14 },
+    state: 'mature',
+    growthProgress: 100,
+    growthRate: 12,
+    rewardEco: 35,
+    rewardFood: 4,
+    rewardCarbon: 20,
+  },
+  {
+    id: 'plot_4',
+    name: 'Garden Bed #4',
+    cropName: 'Nitrogen-Fixing Clover',
+    cropIcon: '☘️',
+    position: { x: 27, z: -17 },
+    state: 'empty',
+    growthProgress: 0,
+    growthRate: 15,
+    rewardEco: 20,
+    rewardFood: 5,
+    rewardCarbon: 15,
+  },
+  {
+    id: 'plot_5',
+    name: 'Garden Bed #5',
+    cropName: 'Heritage Bush Tomatoes',
+    cropIcon: '🍅',
+    position: { x: 30, z: -17 },
+    state: 'empty',
+    growthProgress: 0,
+    growthRate: 11,
+    rewardEco: 28,
+    rewardFood: 7,
+    rewardCarbon: 12,
+  },
+  {
+    id: 'plot_6',
+    name: 'Garden Bed #6',
+    cropName: 'Golden Permaculture Squash',
+    cropIcon: '🎃',
+    position: { x: 33, z: -17 },
+    state: 'growing',
+    growthProgress: 70,
+    growthRate: 9,
+    rewardEco: 32,
+    rewardFood: 9,
+    rewardCarbon: 14,
+  },
+];
+
+/**
+ * Plants seeds in an empty soil bed.
+ */
+export function plantSoilPlot(
+  plots: SoilPlot[],
+  plotId: string,
+  resources: PlayerResources
+): { plots: SoilPlot[]; resources: PlayerResources; success: boolean } {
+  const target = plots.find((p) => p.id === plotId);
+  if (!target || target.state !== 'empty') {
+    return { plots, resources, success: false };
+  }
+
+  const bonus = resources.efficiencyBonus || 1.0;
+  const updatedPlots = plots.map((p) => {
+    if (p.id === plotId) {
+      return {
+        ...p,
+        state: 'growing' as const,
+        growthProgress: 5,
+      };
+    }
+    return p;
+  });
+
+  const nextResources: PlayerResources = {
+    ...resources,
+    ecoScore: resources.ecoScore + Math.round(10 * bonus),
+    carbonOffsetKg: resources.carbonOffsetKg + Math.round(4 * bonus),
+    level: calculateLevel(resources.ecoScore + Math.round(10 * bonus)),
+  };
+
+  return { plots: updatedPlots, resources: nextResources, success: true };
+}
+
+/**
+ * Harvests mature crops from a soil bed, yielding food and eco score.
+ */
+export function harvestSoilPlot(
+  plots: SoilPlot[],
+  plotId: string,
+  resources: PlayerResources
+): { plots: SoilPlot[]; resources: PlayerResources; success: boolean } {
+  const target = plots.find((p) => p.id === plotId);
+  if (!target || target.state !== 'mature') {
+    return { plots, resources, success: false };
+  }
+
+  const bonus = resources.efficiencyBonus || 1.0;
+  const earnedEco = Math.round(target.rewardEco * bonus);
+  const earnedFood = Math.round(target.rewardFood * bonus);
+  const earnedCarbon = Math.round(target.rewardCarbon * bonus);
+
+  const updatedPlots = plots.map((p) => {
+    if (p.id === plotId) {
+      return {
+        ...p,
+        state: 'empty' as const,
+        growthProgress: 0,
+      };
+    }
+    return p;
+  });
+
+  const nextResources: PlayerResources = {
+    ...resources,
+    ecoScore: resources.ecoScore + earnedEco,
+    foodSecurityBaskets: resources.foodSecurityBaskets + earnedFood,
+    carbonOffsetKg: resources.carbonOffsetKg + earnedCarbon,
+    level: calculateLevel(resources.ecoScore + earnedEco),
+  };
+
+  return { plots: updatedPlots, resources: nextResources, success: true };
+}
+
+/**
+ * Advances crop growth over elapsed seconds.
+ */
+export function advanceSoilGrowth(plots: SoilPlot[], deltaSeconds: number): SoilPlot[] {
+  return plots.map((p) => {
+    if (p.state !== 'growing') return p;
+    const nextProgress = Math.min(100, p.growthProgress + p.growthRate * deltaSeconds);
+    if (nextProgress >= 100) {
+      return {
+        ...p,
+        growthProgress: 100,
+        state: 'mature',
+      };
+    }
+    return {
+      ...p,
+      growthProgress: nextProgress,
+    };
+  });
+}
+
+export interface ElderConversation {
+  id: string;
+  topicTitle: string;
+  sdgTopic?: SDGTopic;
+  elderDialogue: string;
+  efficiencyTip: string;
+  recommendedOrder: number;
+}
+
+export const ELDER_GOOSE_CONVERSATIONS: ElderConversation[] = [
+  {
+    id: 'strategy_golden_order',
+    topicTitle: 'The Golden Task Loop',
+    elderDialogue:
+      'Honk greetings, young flyer! To manage our island without exhausting your wings, start at Breeze Wind & Solar Park. Calibrating the turbines first supplies you with abundant kWh energy to power all subsequent city and marine operations!',
+    efficiencyTip:
+      'Always start by tuning Renewables (+45 kWh). This eliminates energy shortages for the expensive City (+12) and Marine (+10) projects.',
+    recommendedOrder: 1,
+  },
+  {
+    id: 'strategy_zero_waste_compost',
+    topicTitle: 'Compost-to-Permaculture Cascade',
+    sdgTopic: 'zero_waste',
+    elderDialogue:
+      'Did you know that sorting organic scraps before visiting the Farmstead yields richer soil amendments? Zero waste is not just cleaning; it is nutrient recycling that speeds up food crop growth by 30%!',
+    efficiencyTip:
+      'Sort recyclables at the Zero Waste station right before harvesting permaculture crops to create a circular nutrient cycle.',
+    recommendedOrder: 2,
+  },
+  {
+    id: 'strategy_urban_bioswales',
+    topicTitle: 'Bioswales & Flood Protection',
+    sdgTopic: 'resilient_cities',
+    elderDialogue:
+      'When storm surges hit our paved avenues, raw runoff will overwhelm Kaz Lagoon if the green roofs and bioswales are dry. Constructing urban green roofs captures rainwater at the source!',
+    efficiencyTip:
+      'Upgrading civic green roofs stabilizes city resilience above 75%, which prevents toxic overflow into the marine sanctuary.',
+    recommendedOrder: 3,
+  },
+  {
+    id: 'strategy_marine_currents',
+    topicTitle: 'Lagoon Surface Cleanup Timing',
+    sdgTopic: 'marine_health',
+    elderDialogue:
+      'Marine plastics break into harmful microplastics under intense afternoon ultraviolet sun. Paddle into the bay early to recover full bottles before they shatter into untraceable particles!',
+    efficiencyTip:
+      'Clear marine plastics promptly. Reaching 80%+ marine health unlocks coral bloom resilience and completes the ocean victory metric.',
+    recommendedOrder: 4,
+  },
+  {
+    id: 'strategy_education_multiplier',
+    topicTitle: 'Climate Academy Ripple Effect',
+    sdgTopic: 'climate_education',
+    elderDialogue:
+      'Teaching at the Academy does not just impart knowledge—it creates goose ambassadors! Every duckling educated spreads Conscious Bazaar purchasing habits throughout their neighborhood flocks.',
+    efficiencyTip:
+      'Hosting the Academy workshop triggers a civic awareness ripple that boosts conscious consumption rewards across the island.',
+    recommendedOrder: 5,
+  },
+  {
+    id: 'strategy_conscious_pantry',
+    topicTitle: 'Short Supply Miles & Bulk Pantries',
+    sdgTopic: 'conscious_consumption',
+    elderDialogue:
+      'At the Conscious Bazaar, packaging accounts for up to 40% of transport emissions. Encouraging bulk burlap sacks and glass refill jars cuts carbon footprint at zero energy loss!',
+    efficiencyTip:
+      'Combine conscious consumption audits with local permaculture harvests to eliminate food transport carbon emissions entirely.',
+    recommendedOrder: 6,
+  },
+  {
+    id: 'strategy_wind_solar_baseload',
+    topicTitle: 'Grid Storage Balancing',
+    sdgTopic: 'renewable_energy',
+    elderDialogue:
+      'The island battery caps at 120 kWh. Do not tune turbines when the battery is already above 80 kWh, or surplus green energy is wasted! Balance consumption and generation.',
+    efficiencyTip:
+      'Spend your clean energy on City and Marine tasks first, then recharge with Wind & Solar to avoid wasting battery storage headroom.',
+    recommendedOrder: 7,
+  },
+];
+
+/**
+ * Consult with Professor Barnaby to gain efficiency wisdom and a +25% bonus multiplier.
+ */
+export function applyEfficiencyConsultation(
+  resources: PlayerResources,
+  topicId: string
+): PlayerResources {
+  const isFirstConsult = !resources.hasConsultedElder;
+  const alreadyViewed = resources.consultedTopics.includes(topicId);
+  const updatedTopics = alreadyViewed
+    ? resources.consultedTopics
+    : [...resources.consultedTopics, topicId];
+
+  return {
+    ...resources,
+    hasConsultedElder: true,
+    efficiencyBonus: Math.max(1.25, resources.efficiencyBonus),
+    consultedTopics: updatedTopics,
+    // First consultation or new advice awards a small inspiration eco bonus
+    ecoScore: resources.ecoScore + (isFirstConsult ? 35 : (alreadyViewed ? 0 : 15)),
+  };
+}
 
 /**
  * Validates whether player has enough energy to initiate a task.
@@ -193,14 +506,14 @@ export function calculateLevel(ecoScore: number): number {
 }
 
 /**
- * Computes updated resources upon task completion.
+ * Computes updated resources upon task completion, applying active efficiency bonus.
  */
 export function completeTask(
   current: PlayerResources,
   task: TaskDefinition,
-  efficiencyBonus = 1.0
+  customBonus?: number
 ): PlayerResources {
-  const bonusMultiplier = Math.max(1.0, efficiencyBonus);
+  const bonusMultiplier = Math.max(1.0, customBonus ?? current.efficiencyBonus ?? 1.0);
   const earnedEco = Math.round(task.rewardEcoScore * bonusMultiplier);
   const newEcoScore = current.ecoScore + earnedEco;
 
@@ -215,16 +528,22 @@ export function completeTask(
     level: calculateLevel(newEcoScore),
   };
 
-  // Apply reward metric
+  // Apply reward metric with bonus multiplier
   switch (task.rewardMetric.type) {
     case 'carbonOffsetKg':
       next.carbonOffsetKg += Math.round(task.rewardMetric.amount * bonusMultiplier);
       break;
     case 'marineHealthPct':
-      next.marineHealthPct = Math.min(100, current.marineHealthPct + Math.round(task.rewardMetric.amount * bonusMultiplier));
+      next.marineHealthPct = Math.min(
+        100,
+        current.marineHealthPct + Math.round(task.rewardMetric.amount * bonusMultiplier)
+      );
       break;
     case 'cityResiliencePct':
-      next.cityResiliencePct = Math.min(100, current.cityResiliencePct + Math.round(task.rewardMetric.amount * bonusMultiplier));
+      next.cityResiliencePct = Math.min(
+        100,
+        current.cityResiliencePct + Math.round(task.rewardMetric.amount * bonusMultiplier)
+      );
       break;
     case 'foodSecurityBaskets':
       next.foodSecurityBaskets += Math.round(task.rewardMetric.amount * bonusMultiplier);
@@ -233,7 +552,10 @@ export function completeTask(
       next.wasteRecycledKg += Math.round(task.rewardMetric.amount * bonusMultiplier);
       break;
     case 'cleanEnergyKwh':
-      next.cleanEnergyKwh = Math.min(120, next.cleanEnergyKwh + Math.round(task.rewardMetric.amount * bonusMultiplier));
+      next.cleanEnergyKwh = Math.min(
+        120,
+        next.cleanEnergyKwh + Math.round(task.rewardMetric.amount * bonusMultiplier)
+      );
       break;
   }
 
@@ -281,7 +603,10 @@ export function checkSustainabilityGoal(resources: PlayerResources): {
 /**
  * Distance check in 2.5D world plane (XZ plane)
  */
-export function calculateDistance2D(p1: { x: number; z: number }, p2: { x: number; z: number }): number {
+export function calculateDistance2D(
+  p1: { x: number; z: number },
+  p2: { x: number; z: number }
+): number {
   const dx = p1.x - p2.x;
   const dz = p1.z - p2.z;
   return Math.sqrt(dx * dx + dz * dz);

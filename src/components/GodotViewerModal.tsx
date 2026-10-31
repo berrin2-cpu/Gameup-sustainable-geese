@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GODOT_FILES, GodotFile } from '../godot/scriptsData.ts';
 import { sounds } from '../audio/soundEffects.ts';
-import { FileCode, Download, Copy, Check, Info, X, FolderTree } from 'lucide-react';
+import { FileCode, Download, Copy, Check, Info, X, FolderTree, Image, Layers, Sliders } from 'lucide-react';
 
 interface GodotViewerModalProps {
   isOpen: boolean;
@@ -10,21 +10,42 @@ interface GodotViewerModalProps {
 
 export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onClose }) => {
   const [selectedFile, setSelectedFile] = useState<GodotFile>(GODOT_FILES[0]);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'scene' | 'script' | 'texture' | 'config'>('all');
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
 
+  const filteredFiles = GODOT_FILES.filter((f) => {
+    if (activeFilter === 'all') return true;
+    return f.category === activeFilter;
+  });
+
   const handleCopy = () => {
     sounds.playClick();
-    navigator.clipboard.writeText(selectedFile.code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    if (selectedFile.code) {
+      navigator.clipboard.writeText(selectedFile.code).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
   };
 
   const handleDownloadFile = (file: GodotFile) => {
     sounds.playClick();
-    const blob = new Blob([file.code], { type: 'text/plain;charset=utf-8' });
+    let blob: Blob;
+
+    if (file.isBinary && file.base64Data) {
+      // Decode base64 to binary
+      const binaryString = atob(file.base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      blob = new Blob([bytes], { type: 'image/png' });
+    } else {
+      blob = new Blob([file.code || ''], { type: 'text/plain;charset=utf-8' });
+    }
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -37,11 +58,10 @@ export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onCl
 
   const handleDownloadAll = () => {
     sounds.playClick();
-    // Download each file sequentially
     GODOT_FILES.forEach((file, index) => {
       setTimeout(() => {
         handleDownloadFile(file);
-      }, index * 200);
+      }, index * 150);
     });
   };
 
@@ -49,7 +69,7 @@ export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onCl
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Godot Project Scripts & Architecture Hub"
+      aria-label="Godot Project Hub"
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-none"
     >
       <div className="relative w-full max-w-5xl h-[88vh] bg-[#1e232a] border border-emerald-500/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-100 font-sans">
@@ -61,13 +81,13 @@ export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onCl
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold tracking-wide text-white">ClimateKaz Godot 4 Architecture Hub</h2>
+                <h2 className="text-lg font-bold tracking-wide text-white">Sustainable Geese · Godot 4 Project Files</h2>
                 <span className="px-2 py-0.5 text-xs font-semibold rounded bg-emerald-950 text-emerald-300 border border-emerald-600/40">
-                  GDScript 4.x
+                  Godot 4.x
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Populated scripts, asset slots for textures/audio, and game loop initialization.
+                Complete World.tscn, scenes, GDScripts, and PNG textures ready to import into Godot.
               </p>
             </div>
           </div>
@@ -76,10 +96,10 @@ export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onCl
             <button
               onClick={handleDownloadAll}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-sm cursor-pointer"
-              title="Download all Godot files"
+              title="Download all Godot scenes, scripts, and textures"
             >
               <Download className="w-3.5 h-3.5" />
-              Download All Files
+              Download All Files ({GODOT_FILES.length})
             </button>
             <button
               onClick={() => {
@@ -94,14 +114,49 @@ export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onCl
           </div>
         </div>
 
+        {/* Filter Pills Bar */}
+        <div className="flex items-center gap-2 px-6 py-2.5 bg-[#12151b] border-b border-slate-800 text-xs">
+          <span className="text-slate-400 font-medium">Filter:</span>
+          {(
+            [
+              { id: 'all', label: 'All Files', icon: Layers },
+              { id: 'scene', label: 'Scenes (.tscn)', icon: Layers },
+              { id: 'script', label: 'Scripts (.gd)', icon: FileCode },
+              { id: 'texture', label: 'Textures (.png)', icon: Image },
+              { id: 'config', label: 'Config', icon: Sliders },
+            ] as const
+          ).map((tab) => {
+            const Icon = tab.icon;
+            const isAct = activeFilter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  sounds.playClick();
+                  setActiveFilter(tab.id);
+                  const matching = tab.id === 'all' ? GODOT_FILES : GODOT_FILES.filter((f) => f.category === tab.id);
+                  if (matching.length > 0 && selectedFile.category !== tab.id && tab.id !== 'all') {
+                    setSelectedFile(matching[0]);
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition cursor-pointer font-medium ${
+                  isAct
+                    ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Body Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* File Explorer Sidebar */}
           <div className="w-64 bg-[#14181e] border-r border-slate-800 p-3 flex flex-col gap-1 overflow-y-auto">
-            <div className="px-3 py-2 text-xs font-bold text-slate-400 tracking-wider uppercase">
-              Project Structure
-            </div>
-            {GODOT_FILES.map((file) => {
+            {filteredFiles.map((file) => {
               const isSelected = selectedFile.path === file.path;
               return (
                 <button
@@ -110,13 +165,17 @@ export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onCl
                     sounds.playClick();
                     setSelectedFile(file);
                   }}
-                  className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg text-left text-xs transition cursor-pointer ${
+                  className={`flex items-start gap-2.5 px-3 py-2 rounded-lg text-left text-xs transition cursor-pointer ${
                     isSelected
                       ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 font-medium'
                       : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
                   }`}
                 >
-                  <FileCode className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`} />
+                  {file.isBinary ? (
+                    <Image className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? 'text-amber-400' : 'text-slate-500'}`} />
+                  ) : (
+                    <FileCode className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`} />
+                  )}
                   <div className="overflow-hidden">
                     <div className="truncate font-mono">{file.filename}</div>
                     <div className="text-[10px] text-slate-400 truncate">{file.path}</div>
@@ -125,19 +184,19 @@ export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onCl
               );
             })}
 
-            {/* Asset Gap Callout Box */}
+            {/* Asset Slot Notice */}
             <div className="mt-auto p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 text-[11px] text-slate-300">
               <div className="flex items-center gap-1.5 font-semibold text-emerald-300 mb-1">
                 <Info className="w-3.5 h-3.5" />
-                Asset Slots Ready
+                World & Textures Ready
               </div>
               <p className="leading-relaxed text-slate-400">
-                Textures (<code className="text-amber-300">duck_idle.png</code>, <code className="text-amber-300">plastic.png</code>) and audio (<code className="text-sky-300">water_splash.wav</code>, <code className="text-sky-300">plastic_crunch.wav</code>) have open <code className="text-emerald-300">@export</code> slots in <code className="text-emerald-300">GameManager.gd</code> with procedural fallbacks.
+                <code className="text-emerald-300">World.tscn</code>, <code className="text-amber-300">Player.tscn</code>, and 2D textures (<code className="text-amber-300">duck_idle.png</code>, <code className="text-amber-300">wind_turbine.png</code>, <code className="text-amber-300">plastic.png</code>) are fully populated on disk.
               </p>
             </div>
           </div>
 
-          {/* Code Viewer Panel */}
+          {/* Code or Image Viewer Panel */}
           <div className="flex-1 flex flex-col bg-[#181d24] overflow-hidden">
             {/* Top Toolbar */}
             <div className="flex items-center justify-between px-5 py-2.5 bg-[#14181e] border-b border-slate-800">
@@ -147,37 +206,58 @@ export const GodotViewerModal: React.FC<GodotViewerModalProps> = ({ isOpen, onCl
               </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-emerald-400">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy Code</span>
-                    </>
-                  )}
-                </button>
+                {!selectedFile.isBinary && (
+                  <button
+                    onClick={handleCopy}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy Code</span>
+                      </>
+                    )}
+                  </button>
+                )}
 
                 <button
                   onClick={() => handleDownloadFile(selectedFile)}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download</span>
+                  <span>Download File</span>
                 </button>
               </div>
             </div>
 
-            {/* Code Body */}
-            <div className="flex-1 p-4 overflow-auto font-mono text-xs leading-relaxed text-slate-200 select-text bg-[#0d1117]">
-              <pre className="whitespace-pre">{selectedFile.code}</pre>
-            </div>
+            {/* Viewer Body */}
+            {selectedFile.isBinary && selectedFile.base64Data ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0d1117] overflow-auto">
+                <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col items-center">
+                  <div className="w-48 h-48 rounded-xl bg-checkerboard flex items-center justify-center p-4 border border-slate-700/80">
+                    <img
+                      src={`data:image/png;base64,${selectedFile.base64Data}`}
+                      alt={selectedFile.filename}
+                      className="max-w-full max-h-full object-contain image-rendering-pixelated drop-shadow-md"
+                    />
+                  </div>
+                  <div className="mt-4 text-center">
+                    <div className="text-sm font-bold text-white font-mono">{selectedFile.filename}</div>
+                    <div className="text-xs text-slate-400 mt-1">64x64 Pixel PNG Texture Asset</div>
+                    <div className="text-[11px] text-emerald-400 mt-0.5">Ready for Sprite2D & TileMapLayer</div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 p-4 overflow-auto font-mono text-xs leading-relaxed text-slate-200 select-text bg-[#0d1117]">
+                <pre className="whitespace-pre">{selectedFile.code}</pre>
+              </div>
+            )}
           </div>
         </div>
       </div>

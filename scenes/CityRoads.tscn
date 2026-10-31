@@ -1,0 +1,115 @@
+[gd_scene format=3 uid="uid://b8m3k2v91q4p7"]
+
+[node name="CityRoads" type="Node2D"]
+z_index = -5
+
+[node name="AsphaltPavements" type="Node2D" parent="."]
+
+[node name="MainAvenueNorthSouth" type="Polygon2D" parent="AsphaltPavements"]
+color = Color(0.24, 0.26, 0.28, 1)
+polygon = PackedVector2Array(-90, -2200, 90, -2200, 90, 2200, -90, 2200)
+
+[node name="EastWestAvenue" type="Polygon2D" parent="AsphaltPavements"]
+color = Color(0.24, 0.26, 0.28, 1)
+polygon = PackedVector2Array(-2200, -70, 2200, -70, 2200, 70, -2200, 70)
+
+[node name="SouthWestDiagonalBranch" type="Polygon2D" parent="AsphaltPavements"]
+color = Color(0.24, 0.26, 0.28, 1)
+polygon = PackedVector2Array(-60, 40, -1450, 850, -1530, 950, -1370, 1020, 40, 80)
+
+[node name="NorthEastDiagonalBranch" type="Polygon2D" parent="AsphaltPavements"]
+color = Color(0.24, 0.26, 0.28, 1)
+polygon = PackedVector2Array(40, -60, 1250, -850, 1340, -940, 1420, -840, 70, -30)
+
+[node name="CentralRoundaboutRing" type="Polygon2D" parent="AsphaltPavements"]
+color = Color(0.24, 0.26, 0.28, 1)
+polygon = PackedVector2Array(-260, 0, -240, -100, -180, -180, -100, -240, 0, -260, 100, -240, 180, -180, 240, -100, 260, 0, 240, 100, 180, 180, 100, 240, 0, 260, -100, 240, -180, 180, -240, 100)
+
+[node name="CentralPlazaIsland" type="Polygon2D" parent="."]
+color = Color(0.38, 0.72, 0.32, 1)
+polygon = PackedVector2Array(-110, 0, -90, -60, -60, -90, 0, -110, 60, -90, 90, -60, 110, 0, 90, 60, 60, 90, 0, 110, -60, 90, -90, 60)
+
+[node name="PlazaBrickRing" type="Line2D" parent="CentralPlazaIsland"]
+points = PackedVector2Array(-110, 0, -90, -60, -60, -90, 0, -110, 60, -90, 90, -60, 110, 0, 90, 60, 60, 90, 0, 110, -60, 90, -90, 60, -110, 0)
+width = 10.0
+default_color = Color(0.92, 0.88, 0.78, 1)
+joint_mode = 2
+closed = true
+
+[node name="BikeLanes" type="Node2D" parent="."]
+
+[node name="NorthBikeLane" type="Line2D" parent="BikeLanes"]
+points = PackedVector2Array(-75, -2200, -75, -280)
+width = 12.0
+default_color = Color(0.2, 0.65, 0.45, 0.9)
+
+[node name="SouthBikeLane" type="Line2D" parent="BikeLanes"]
+points = PackedVector2Array(75, 280, 75, 2200)
+width = 12.0
+default_color = Color(0.2, 0.65, 0.45, 0.9)
+
+[node name="EastBikeLane" type="Line2D" parent="BikeLanes"]
+points = PackedVector2Array(280, 55, 2200, 55)
+width = 12.0
+default_color = Color(0.2, 0.65, 0.45, 0.9)
+
+[node name="WestBikeLane" type="Line2D" parent="BikeLanes"]
+points = PackedVector2Array(-2200, -55, -280, -55)
+width = 12.0
+default_color = Color(0.2, 0.65, 0.45, 0.9)
+
+[node name="RoadMarkings" type="Node2D" parent="."]
+
+[node name="CenterDashedYellowNS" type="Line2D" parent="RoadMarkings"]
+points = PackedVector2Array(0, -2200, 0, -280)
+width = 6.0
+default_color = Color(0.96, 0.82, 0.24, 0.95)
+
+[node name="CenterDashedYellowSouth" type="Line2D" parent="RoadMarkings"]
+points = PackedVector2Array(0, 280, 0, 2200)
+width = 6.0
+default_color = Color(0.96, 0.82, 0.24, 0.95)
+
+[node name="CenterDashedYellowEast" type="Line2D" parent="RoadMarkings"]
+points = PackedVector2Array(280, 0, 2200, 0)
+width = 6.0
+default_color = Color(0.96, 0.82, 0.24, 0.95)
+
+[node name="CenterDashedYellowWest" type="Line2D" parent="RoadMarkings"]
+points = PackedVector2Array(-2200, 0, -280, 0)
+width = 6.0
+default_color = Color(0.96, 0.82, 0.24, 0.95)
+
+[node name="PedestrianCrosswalks" type="Node2D" parent="."]
+
+[node name="NorthCrosswalkBar1" type="Line2D" parent="PedestrianCrosswalks"]
+points = PackedVector2Array(-80, -320, 80, -320)
+width = 8.0
+default_color = Color(1, 1, 1, 0.9)
+
+[node name="NorthCrosswalkBar2" type="Line2D" parent="PedestrianCrosswalks"]
+points = PackedVector2Array(-80, -340, 80, -340)
+width = 8.0
+default_color = Color(1, 1, 1, 0.9)
+
+[node name="SouthCrosswalkBar1" type="Line2D" parent="PedestrianCrosswalks"]
+points = PackedVector2Array(-80, 320, 80, 320)
+width = 8.0
+default_color = Color(1, 1, 1, 0.9)
+
+[node name="SouthCrosswalkBar2" type="Line2D" parent="PedestrianCrosswalks"]
+points = PackedVector2Array(-80, 340, 80, 340)
+width = 8.0
+default_color = Color(1, 1, 1, 0.9)
+
+[node name="BioswalesAndCurbs" type="Node2D" parent="."]
+
+[node name="WestCurvedBioswale" type="Line2D" parent="BioswalesAndCurbs"]
+points = PackedVector2Array(-105, -2000, -105, 2000)
+width = 16.0
+default_color = Color(0.42, 0.74, 0.38, 1)
+
+[node name="EastCurvedBioswale" type="Line2D" parent="BioswalesAndCurbs"]
+points = PackedVector2Array(105, -2000, 105, 2000)
+width = 16.0
+default_color = Color(0.42, 0.74, 0.38, 1)

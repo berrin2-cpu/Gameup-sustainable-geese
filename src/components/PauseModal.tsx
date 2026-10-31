@@ -40,7 +40,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
         </div>
 
         <h2 className="text-2xl font-black tracking-tight text-white">Game Paused</h2>
-        <p className="text-xs text-slate-400 mt-1">Take a breath. Kaz Island will wait for you!</p>
+        <p className="text-xs text-slate-400 mt-1">Take a breath. The island will wait for you!</p>
 
         {/* Current Run Metrics */}
         <div className="grid grid-cols-3 gap-2 w-full my-5 p-3 rounded-2xl bg-slate-900/80 border border-slate-700/60">
