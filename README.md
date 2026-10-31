@@ -30,7 +30,8 @@ Bu verdiğim örnekleri kullanarak oyun içi eşyalarını minimumda tutarak
 her konuya eşit görev sayısı vererek bir oyun oluşturacağım
 Bunu godotta çalıştırmak için gerekli tüm kaynakları oluştur.
 ------------------------------------------------------------------------
-Gemini 3.8 flash & Argon max prompt:
+game structure by evren llm
+
 ClimateKaz/
 ├── scenes/
 │ ├── Player.tscn
@@ -58,6 +59,7 @@ ClimateKaz/
 ├── export_presets.cfg
 └── project.godot 
 
+Gemini 3.8 flash & Argon max prompt:
 This is a structure of a godot project which has no code text for the scripts.
 I want you to write scripts and populate the GameManeger.gd  script 
 to initialize the game loop and asset manegement.
