@@ -1,4 +1,4 @@
-hello...
+
 
 EVREN AI prompt:
 
